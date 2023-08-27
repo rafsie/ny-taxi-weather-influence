@@ -1,0 +1,3187 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%spark\nval sparkver = sc.version\nval scalaver = util.Properties.versionString",
+      "user": "anonymous",
+      "dateUpdated": "2023-08-27T14:47:27+0200",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u001b[1m\u001b[34msparkver\u001b[0m: \u001b[1m\u001b[32mString\u001b[0m = 2.4.5\n\u001b[1m\u001b[34mscalaver\u001b[0m: \u001b[1m\u001b[32mString\u001b[0m = version 2.11.12\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1693080566075_1010409165",
+      "id": "paragraph_1693080566075_1010409165",
+      "dateCreated": "2023-08-26T22:09:26+0200",
+      "dateStarted": "2023-08-27T14:47:27+0200",
+      "dateFinished": "2023-08-27T14:47:27+0200",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:105"
+    },
+    {
+      "text": "%spark\nimport org.apache.spark.sql.{ColumnName, SparkSession}\nimport org.apache.spark.sql.functions._\nimport spark.implicits._\n\nval nyTaxiDF = spark.read.load(\"/home/rs/Desktop/ntfs/nytaxi/part-r-*.snappy.parquet\")\nval nyWeatherDF = spark.read.option(\"header\", \"true\").option(\"inferSchema\", \"true\").csv(\"/home/rs/Desktop/ntfs/nytaxi/nyc_weather.csv\")\n\n  def fahrenheitToCelsius(f: ColumnName) = round((f - 32) * 5 / 9, 1)\n  def milesToKmPerHour(m: ColumnName) = round(m * 1.609344, 1)\n  def inchesToMm(i: ColumnName) = round(i * 25.4, 1)\n\n  val weatherDF = nyTaxiDF\n    .select(\"pickup_datetime\")\n    .withColumn(\"pickup_date\", to_date(col(\"pickup_datetime\"), \"yyyy-MM-dd\"))\n    .withColumn(\"DOW\", date_format(col(\"pickup_date\"), \"E\"))\n    .withColumn(\"WeekDayNo\", dayofweek(col(\"pickup_date\")))\n    .join(nyWeatherDF, col(\"pickup_date\") <=> col(\"Date\").cast(\"date\"))\n    .groupBy($\"pickup_date\".as(\"Date\"),\n      $\"WeekDayNo\".as(\"WeekDayNo\"),\n      $\"DOW\".as(\"DOW\"),\n      fahrenheitToCelsius($\"Temp_avg\").as(\"AvgTempC\"),\n      milesToKmPerHour($\"Wind_avg\").as(\"AvgWindKmh\"),\n      inchesToMm($\"Precipitation\").as(\"PrecipitationMMm2\"))\n    .agg(count(\"*\").as(\"TripsNo\"))\n    .orderBy(col(\"Date\").asc_nulls_last)\n\n    weatherDF.createOrReplaceTempView(\"weathertbl\")\n    weatherDF.show(10)",
+      "user": "anonymous",
+      "dateUpdated": "2023-08-27T18:12:44+0200",
+      "progress": 100,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 454,
+              "optionOpen": false
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "+----------+---------+---+--------+----------+-----------------+-------+\n|      Date|WeekDayNo|DOW|AvgTempC|AvgWindKmh|PrecipitationMMm2|TripsNo|\n+----------+---------+---+--------+----------+-----------------+-------+\n|2009-01-01|        5|Thu|    -5.6|      30.9|              0.0| 314131|\n|2009-01-02|        6|Fri|    -0.2|      16.7|              0.0| 366409|\n|2009-01-03|        7|Sat|     1.2|      31.1|              0.0| 428659|\n|2009-01-04|        1|Sun|     1.6|      17.4|              0.0| 384556|\n|2009-01-05|        2|Mon|     5.4|      18.2|              0.0| 368995|\n|2009-01-06|        3|Tue|     0.7|      16.7|              0.0| 422786|\n|2009-01-07|        4|Wed|     2.3|      19.8|              0.0| 371893|\n|2009-01-08|        5|Thu|     2.1|      33.8|              0.0| 469193|\n|2009-01-09|        6|Fri|    -1.2|      30.3|              0.0| 514201|\n|2009-01-10|        7|Sat|    -3.1|      17.5|              0.0| 484757|\n+----------+---------+---+--------+----------+-----------------+-------+\nonly showing top 10 rows\n\nimport org.apache.spark.sql.{ColumnName, SparkSession}\nimport org.apache.spark.sql.functions._\nimport spark.implicits._\n\u001b[1m\u001b[34mnyTaxiDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [dropoff_datetime: timestamp, dropoff_latitude: float ... 22 more fields]\n\u001b[1m\u001b[34mnyZonesDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [LocationID: string, Borough: string ... 2 more fields]\n\u001b[1m\u001b[34mnyWeatherDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [DoM: int, Temp_avg: double ... 15 more fields]\n\u001b[1m\u001b[34mfahrenheitToCelsius\u001b[0m: \u001b[1m\u001b[32m(f: org.apache.spark.sql.ColumnName)org.apache.spark.sql.Column\u001b[0m\n\u001b[1m\u001b[34mmilesToKmPerHour\u001b[0m: \u001b[1m\u001b[32m(m: org.apache.spark.sql.ColumnName)org.apache.spark.sql.Column\u001b[0m\n\u001b[1m\u001b[34minchesToMm\u001b[0m: \u001b[1m\u001b[32m(i: org.apache.spark.sql.ColumnName..."
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=0",
+              "$$hashKey": "object:4841"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=1",
+              "$$hashKey": "object:4842"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=2",
+              "$$hashKey": "object:4843"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=3",
+              "$$hashKey": "object:4844"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=4",
+              "$$hashKey": "object:4845"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=5",
+              "$$hashKey": "object:4846"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=6",
+              "$$hashKey": "object:4847"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1693080435644_1887001749",
+      "id": "paragraph_1693080435644_1887001749",
+      "dateCreated": "2023-08-26T22:07:15+0200",
+      "dateStarted": "2023-08-27T14:54:02+0200",
+      "dateFinished": "2023-08-27T15:08:13+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:106"
+    },
+    {
+      "text": "%spark.sql\n\nCREATE OR REPLACE TEMPORARY VIEW normalweathertbl AS\nSELECT WeekDayNo, DOW, round(avg(TripsNo), 2) AS AvgTripsNormal FROM weathertbl\nWHERE AvgTempC BETWEEN 10 AND 25 AND AvgWindKmh < 20 AND PrecipitationMMm2 = 0\nGROUP BY DOW, WeekDayNo\nORDER BY WeekDayNo ASC;",
+      "user": "anonymous",
+      "dateUpdated": "2023-08-27T15:09:06+0200",
+      "progress": 0,
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/sql"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1693080468621_337735932",
+      "id": "paragraph_1693080468621_337735932",
+      "dateCreated": "2023-08-26T22:07:48+0200",
+      "dateStarted": "2023-08-27T15:09:06+0200",
+      "dateFinished": "2023-08-27T15:09:07+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:107"
+    },
+    {
+      "text": "%spark.sql\n\nSELECT wt.WeekDayNo, wt.DOW, nwt.AvgTripsNormal, round(avg(TripsNo), 2) AS AvgTripsCold FROM weathertbl wt\nINNER JOIN normalweathertbl nwt\nON wt.WeekDayNo = nwt.WeekDayNo\nWHERE AvgTempC < 10 AND AvgWindKmh > 20 AND PrecipitationMMm2 > 0\nGROUP BY wt.DOW, wt.WeekDayNo, nwt.AvgTripsNormal\nORDER BY WeekDayNo ASC;",
+      "user": "anonymous",
+      "dateUpdated": "2023-08-27T18:11:54+0200",
+      "progress": 33,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "ultimate-line-chart",
+              "height": 548,
+              "optionOpen": true,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "WeekDayNo": "string",
+                      "DOW": "string",
+                      "AvgTripsNormal": "string",
+                      "AvgTripsCold": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "ultimate-line-chart": {
+                  "chartChanged": false,
+                  "parameterChanged": false,
+                  "panel": {
+                    "columnPanelOpened": false,
+                    "parameterPanelOpened": false
+                  },
+                  "spec": {
+                    "charts": {
+                      "line": {
+                        "transform": {
+                          "method": "object"
+                        },
+                        "sharedAxis": true,
+                        "axis": {
+                          "xAxis": {
+                            "dimension": "multiple",
+                            "axisType": "key",
+                            "name": "xAxis"
+                          },
+                          "yAxis": {
+                            "dimension": "multiple",
+                            "axisType": "aggregator",
+                            "minAxisCount": 1,
+                            "name": "yAxis"
+                          },
+                          "category": {
+                            "dimension": "multiple",
+                            "axisType": "group",
+                            "name": "category"
+                          }
+                        },
+                        "parameter": {
+                          "bulletType": {
+                            "valueType": "string",
+                            "defaultValue": "round",
+                            "description": "type of bullet",
+                            "widget": "option",
+                            "optionValues": [
+                              "round",
+                              "round-white",
+                              "none"
+                            ],
+                            "name": "bulletType"
+                          },
+                          "bulletSize": {
+                            "valueType": "int",
+                            "defaultValue": 5,
+                            "description": "size of bullets",
+                            "name": "bulletSize"
+                          },
+                          "hideBulletsCount": {
+                            "valueType": "int",
+                            "defaultValue": 50,
+                            "description": "bullets will be shown until this count",
+                            "name": "hideBulletsCount"
+                          },
+                          "yAxisValueFormat": {
+                            "valueType": "string",
+                            "defaultValue": "none",
+                            "description": "the format of yAxis value",
+                            "widget": "option",
+                            "optionValues": [
+                              "none",
+                              "no-comma",
+                              "compact-int",
+                              "binary-size",
+                              "second"
+                            ],
+                            "name": "yAxisValueFormat"
+                          },
+                          "yAxisValuePrecision": {
+                            "valueType": "int",
+                            "defaultValue": 2,
+                            "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                            "name": "yAxisValuePrecision"
+                          },
+                          "yAxisValueInside": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis value inside of plot",
+                            "widget": "checkbox",
+                            "name": "yAxisValueInside"
+                          },
+                          "showXAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "show xAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showXAxisScroll"
+                          },
+                          "showYAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showYAxisScroll"
+                          },
+                          "chartMarginLeft": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "left margin of chart",
+                            "name": "chartMarginLeft"
+                          },
+                          "chartMarginRight": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "right margin of chart",
+                            "name": "chartMarginRight"
+                          },
+                          "showLegend": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show legend",
+                            "widget": "checkbox",
+                            "name": "showLegend"
+                          },
+                          "legendValueText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                            "name": "legendValueText"
+                          },
+                          "legendPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "position of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top",
+                              "left",
+                              "right"
+                            ],
+                            "name": "legendPosition"
+                          },
+                          "xAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "xAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top"
+                            ],
+                            "name": "xAxisPosition"
+                          },
+                          "yAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "left",
+                            "description": "yAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "left",
+                              "right"
+                            ],
+                            "name": "yAxisPosition"
+                          },
+                          "rotateXAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate xAxis labels",
+                            "name": "rotateXAxisLabel"
+                          },
+                          "rotateYAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate yAxis labels",
+                            "name": "rotateYAxisLabel"
+                          },
+                          "balloonText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                            "name": "balloonText"
+                          },
+                          "balloonType": {
+                            "valueType": "string",
+                            "defaultValue": "simple",
+                            "description": "type of balloon",
+                            "widget": "option",
+                            "optionValues": [
+                              "simple",
+                              "color",
+                              "drop-shaped"
+                            ],
+                            "name": "balloonType"
+                          },
+                          "yAxisGuides": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "yAxisGuides"
+                          },
+                          "trendLines": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "trendLines"
+                          },
+                          "mainTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "main title of chart",
+                            "name": "mainTitle"
+                          },
+                          "subTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "sub title of chart",
+                            "name": "subTitle"
+                          },
+                          "xAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of xAxis",
+                            "name": "xAxisName"
+                          },
+                          "yAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of yAxis",
+                            "name": "yAxisName"
+                          },
+                          "xAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of xAxis",
+                            "name": "xAxisUnit"
+                          },
+                          "yAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of yAxis",
+                            "name": "yAxisUnit"
+                          },
+                          "logarithmicYAxis": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use logarithmic scale in yAxis",
+                            "widget": "checkbox",
+                            "name": "logarithmicYAxis"
+                          },
+                          "inverted": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "invert x and y axes",
+                            "widget": "checkbox",
+                            "name": "inverted"
+                          },
+                          "graphType": {
+                            "valueType": "string",
+                            "defaultValue": "line",
+                            "description": "graph type",
+                            "widget": "option",
+                            "optionValues": [
+                              "line",
+                              "smoothedLine"
+                            ],
+                            "name": "graphType"
+                          },
+                          "dateFormat": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                            "name": "dateFormat"
+                          }
+                        }
+                      },
+                      "dashed": {
+                        "transform": {
+                          "method": "object"
+                        },
+                        "sharedAxis": true,
+                        "axis": {
+                          "xAxis": {
+                            "dimension": "multiple",
+                            "axisType": "key",
+                            "name": "xAxis"
+                          },
+                          "yAxis": {
+                            "dimension": "multiple",
+                            "axisType": "aggregator",
+                            "minAxisCount": 1,
+                            "name": "yAxis"
+                          },
+                          "category": {
+                            "dimension": "multiple",
+                            "axisType": "group",
+                            "name": "category"
+                          }
+                        },
+                        "parameter": {
+                          "bulletType": {
+                            "valueType": "string",
+                            "defaultValue": "none",
+                            "description": "type of bullet",
+                            "widget": "option",
+                            "optionValues": [
+                              "none",
+                              "round",
+                              "round-white"
+                            ],
+                            "name": "bulletType"
+                          },
+                          "bulletSize": {
+                            "valueType": "int",
+                            "defaultValue": 5,
+                            "description": "size of bullets",
+                            "name": "bulletSize"
+                          },
+                          "hideBulletsCount": {
+                            "valueType": "int",
+                            "defaultValue": 50,
+                            "description": "bullets will be shown until this count",
+                            "name": "hideBulletsCount"
+                          },
+                          "yAxisValueFormat": {
+                            "valueType": "string",
+                            "defaultValue": "none",
+                            "description": "the format of yAxis value",
+                            "widget": "option",
+                            "optionValues": [
+                              "none",
+                              "no-comma",
+                              "compact-int",
+                              "binary-size",
+                              "second"
+                            ],
+                            "name": "yAxisValueFormat"
+                          },
+                          "yAxisValuePrecision": {
+                            "valueType": "int",
+                            "defaultValue": 2,
+                            "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                            "name": "yAxisValuePrecision"
+                          },
+                          "yAxisValueInside": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis value inside of plot",
+                            "widget": "checkbox",
+                            "name": "yAxisValueInside"
+                          },
+                          "showXAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "show xAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showXAxisScroll"
+                          },
+                          "showYAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showYAxisScroll"
+                          },
+                          "chartMarginLeft": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "left margin of chart",
+                            "name": "chartMarginLeft"
+                          },
+                          "chartMarginRight": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "right margin of chart",
+                            "name": "chartMarginRight"
+                          },
+                          "showLegend": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show legend",
+                            "widget": "checkbox",
+                            "name": "showLegend"
+                          },
+                          "legendValueText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                            "name": "legendValueText"
+                          },
+                          "legendPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "position of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top",
+                              "left",
+                              "right"
+                            ],
+                            "name": "legendPosition"
+                          },
+                          "xAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "xAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top"
+                            ],
+                            "name": "xAxisPosition"
+                          },
+                          "yAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "left",
+                            "description": "yAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "left",
+                              "right"
+                            ],
+                            "name": "yAxisPosition"
+                          },
+                          "rotateXAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate xAxis labels",
+                            "name": "rotateXAxisLabel"
+                          },
+                          "rotateYAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate yAxis labels",
+                            "name": "rotateYAxisLabel"
+                          },
+                          "balloonText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                            "name": "balloonText"
+                          },
+                          "balloonType": {
+                            "valueType": "string",
+                            "defaultValue": "simple",
+                            "description": "type of balloon",
+                            "widget": "option",
+                            "optionValues": [
+                              "simple",
+                              "color",
+                              "drop-shaped"
+                            ],
+                            "name": "balloonType"
+                          },
+                          "yAxisGuides": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "yAxisGuides"
+                          },
+                          "trendLines": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "trendLines"
+                          },
+                          "mainTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "main title of chart",
+                            "name": "mainTitle"
+                          },
+                          "subTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "sub title of chart",
+                            "name": "subTitle"
+                          },
+                          "xAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of xAxis",
+                            "name": "xAxisName"
+                          },
+                          "yAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of yAxis",
+                            "name": "yAxisName"
+                          },
+                          "xAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of xAxis",
+                            "name": "xAxisUnit"
+                          },
+                          "yAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of yAxis",
+                            "name": "yAxisUnit"
+                          },
+                          "logarithmicYAxis": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use logarithmic scale in yAxis",
+                            "widget": "checkbox",
+                            "name": "logarithmicYAxis"
+                          },
+                          "inverted": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "invert x and y axes",
+                            "widget": "checkbox",
+                            "name": "inverted"
+                          },
+                          "graphType": {
+                            "valueType": "string",
+                            "defaultValue": "line",
+                            "description": "graph type",
+                            "widget": "option",
+                            "optionValues": [
+                              "smoothedLine",
+                              "line"
+                            ],
+                            "name": "graphType"
+                          },
+                          "dateFormat": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                            "name": "dateFormat"
+                          },
+                          "dashLength": {
+                            "valueType": "int",
+                            "defaultValue": 5,
+                            "description": "the length of dash",
+                            "name": "dashLength"
+                          }
+                        }
+                      },
+                      "step": {
+                        "transform": {
+                          "method": "object"
+                        },
+                        "sharedAxis": true,
+                        "axis": {
+                          "xAxis": {
+                            "dimension": "multiple",
+                            "axisType": "key",
+                            "name": "xAxis"
+                          },
+                          "yAxis": {
+                            "dimension": "multiple",
+                            "axisType": "aggregator",
+                            "minAxisCount": 1,
+                            "name": "yAxis"
+                          },
+                          "category": {
+                            "dimension": "multiple",
+                            "axisType": "group",
+                            "name": "category"
+                          }
+                        },
+                        "parameter": {
+                          "bulletSize": {
+                            "valueType": "int",
+                            "defaultValue": 5,
+                            "description": "size of bullets",
+                            "name": "bulletSize"
+                          },
+                          "hideBulletsCount": {
+                            "valueType": "int",
+                            "defaultValue": 50,
+                            "description": "bullets will be shown until this count",
+                            "name": "hideBulletsCount"
+                          },
+                          "yAxisValueFormat": {
+                            "valueType": "string",
+                            "defaultValue": "none",
+                            "description": "the format of yAxis value",
+                            "widget": "option",
+                            "optionValues": [
+                              "none",
+                              "no-comma",
+                              "compact-int",
+                              "binary-size",
+                              "second"
+                            ],
+                            "name": "yAxisValueFormat"
+                          },
+                          "yAxisValuePrecision": {
+                            "valueType": "int",
+                            "defaultValue": 2,
+                            "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                            "name": "yAxisValuePrecision"
+                          },
+                          "yAxisValueInside": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis value inside of plot",
+                            "widget": "checkbox",
+                            "name": "yAxisValueInside"
+                          },
+                          "showXAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "show xAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showXAxisScroll"
+                          },
+                          "showYAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showYAxisScroll"
+                          },
+                          "chartMarginLeft": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "left margin of chart",
+                            "name": "chartMarginLeft"
+                          },
+                          "chartMarginRight": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "right margin of chart",
+                            "name": "chartMarginRight"
+                          },
+                          "showLegend": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show legend",
+                            "widget": "checkbox",
+                            "name": "showLegend"
+                          },
+                          "legendValueText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                            "name": "legendValueText"
+                          },
+                          "legendPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "position of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top",
+                              "left",
+                              "right"
+                            ],
+                            "name": "legendPosition"
+                          },
+                          "xAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "xAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top"
+                            ],
+                            "name": "xAxisPosition"
+                          },
+                          "yAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "left",
+                            "description": "yAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "left",
+                              "right"
+                            ],
+                            "name": "yAxisPosition"
+                          },
+                          "rotateXAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate xAxis labels",
+                            "name": "rotateXAxisLabel"
+                          },
+                          "rotateYAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate yAxis labels",
+                            "name": "rotateYAxisLabel"
+                          },
+                          "balloonText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                            "name": "balloonText"
+                          },
+                          "balloonType": {
+                            "valueType": "string",
+                            "defaultValue": "simple",
+                            "description": "type of balloon",
+                            "widget": "option",
+                            "optionValues": [
+                              "simple",
+                              "color",
+                              "drop-shaped"
+                            ],
+                            "name": "balloonType"
+                          },
+                          "yAxisGuides": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "yAxisGuides"
+                          },
+                          "trendLines": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "trendLines"
+                          },
+                          "mainTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "main title of chart",
+                            "name": "mainTitle"
+                          },
+                          "subTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "sub title of chart",
+                            "name": "subTitle"
+                          },
+                          "xAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of xAxis",
+                            "name": "xAxisName"
+                          },
+                          "yAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of yAxis",
+                            "name": "yAxisName"
+                          },
+                          "xAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of xAxis",
+                            "name": "xAxisUnit"
+                          },
+                          "yAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of yAxis",
+                            "name": "yAxisUnit"
+                          },
+                          "logarithmicYAxis": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use logarithmic scale in yAxis",
+                            "widget": "checkbox",
+                            "name": "logarithmicYAxis"
+                          },
+                          "inverted": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "invert x and y axes",
+                            "widget": "checkbox",
+                            "name": "inverted"
+                          },
+                          "dateFormat": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                            "name": "dateFormat"
+                          },
+                          "dashLength": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "the length of dash",
+                            "name": "dashLength"
+                          },
+                          "noStepRisers": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "no risers in step line",
+                            "widget": "checkbox",
+                            "name": "noStepRisers"
+                          }
+                        }
+                      },
+                      "no-group": {
+                        "transform": {
+                          "method": "raw"
+                        },
+                        "axis": {
+                          "xAxis": {
+                            "dimension": "single",
+                            "axisType": "unique",
+                            "name": "xAxis"
+                          },
+                          "yAxis": {
+                            "dimension": "multiple",
+                            "axisType": "value",
+                            "minAxisCount": 1,
+                            "name": "yAxis"
+                          }
+                        },
+                        "parameter": {
+                          "bulletType": {
+                            "valueType": "string",
+                            "defaultValue": "round",
+                            "description": "type of bullet",
+                            "widget": "option",
+                            "optionValues": [
+                              "round",
+                              "round-white",
+                              "none"
+                            ],
+                            "name": "bulletType"
+                          },
+                          "bulletSize": {
+                            "valueType": "int",
+                            "defaultValue": 5,
+                            "description": "size of bullets",
+                            "name": "bulletSize"
+                          },
+                          "hideBulletsCount": {
+                            "valueType": "int",
+                            "defaultValue": 50,
+                            "description": "bullets will be shown until this count",
+                            "name": "hideBulletsCount"
+                          },
+                          "yAxisValueFormat": {
+                            "valueType": "string",
+                            "defaultValue": "none",
+                            "description": "the format of yAxis value",
+                            "widget": "option",
+                            "optionValues": [
+                              "none",
+                              "no-comma",
+                              "compact-int",
+                              "binary-size",
+                              "second"
+                            ],
+                            "name": "yAxisValueFormat"
+                          },
+                          "yAxisValuePrecision": {
+                            "valueType": "int",
+                            "defaultValue": 2,
+                            "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                            "name": "yAxisValuePrecision"
+                          },
+                          "yAxisValueInside": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis value inside of plot",
+                            "widget": "checkbox",
+                            "name": "yAxisValueInside"
+                          },
+                          "showXAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "show xAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showXAxisScroll"
+                          },
+                          "showYAxisScroll": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show yAxis scroll",
+                            "widget": "checkbox",
+                            "name": "showYAxisScroll"
+                          },
+                          "chartMarginLeft": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "left margin of chart",
+                            "name": "chartMarginLeft"
+                          },
+                          "chartMarginRight": {
+                            "valueType": "int",
+                            "defaultValue": 15,
+                            "description": "right margin of chart",
+                            "name": "chartMarginRight"
+                          },
+                          "showLegend": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show legend",
+                            "widget": "checkbox",
+                            "name": "showLegend"
+                          },
+                          "legendValueText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                            "name": "legendValueText"
+                          },
+                          "legendPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "position of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top",
+                              "left",
+                              "right"
+                            ],
+                            "name": "legendPosition"
+                          },
+                          "xAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "xAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top"
+                            ],
+                            "name": "xAxisPosition"
+                          },
+                          "yAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "left",
+                            "description": "yAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "left",
+                              "right"
+                            ],
+                            "name": "yAxisPosition"
+                          },
+                          "rotateXAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate xAxis labels",
+                            "name": "rotateXAxisLabel"
+                          },
+                          "rotateYAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate yAxis labels",
+                            "name": "rotateYAxisLabel"
+                          },
+                          "balloonText": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                            "name": "balloonText"
+                          },
+                          "balloonType": {
+                            "valueType": "string",
+                            "defaultValue": "simple",
+                            "description": "type of balloon",
+                            "widget": "option",
+                            "optionValues": [
+                              "simple",
+                              "color",
+                              "drop-shaped"
+                            ],
+                            "name": "balloonType"
+                          },
+                          "yAxisGuides": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "yAxisGuides"
+                          },
+                          "trendLines": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                            "widget": "textarea",
+                            "name": "trendLines"
+                          },
+                          "mainTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "main title of chart",
+                            "name": "mainTitle"
+                          },
+                          "subTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "sub title of chart",
+                            "name": "subTitle"
+                          },
+                          "xAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of xAxis",
+                            "name": "xAxisName"
+                          },
+                          "yAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of yAxis",
+                            "name": "yAxisName"
+                          },
+                          "xAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of xAxis",
+                            "name": "xAxisUnit"
+                          },
+                          "yAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of yAxis",
+                            "name": "yAxisUnit"
+                          },
+                          "logarithmicYAxis": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use logarithmic scale in yAxis",
+                            "widget": "checkbox",
+                            "name": "logarithmicYAxis"
+                          },
+                          "inverted": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "invert x and y axes",
+                            "widget": "checkbox",
+                            "name": "inverted"
+                          },
+                          "graphType": {
+                            "valueType": "string",
+                            "defaultValue": "line",
+                            "description": "graph type",
+                            "widget": "option",
+                            "optionValues": [
+                              "line",
+                              "smoothedLine"
+                            ],
+                            "name": "graphType"
+                          },
+                          "dateFormat": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                            "name": "dateFormat"
+                          }
+                        }
+                      }
+                    },
+                    "initialized": false,
+                    "version": {
+                      "axis": "{\"line\":[{\"dimension\":\"multiple\",\"axisType\":\"key\",\"name\":\"xAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"aggregator\",\"minAxisCount\":1,\"name\":\"yAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"group\",\"name\":\"category\"}],\"dashed\":[{\"dimension\":\"multiple\",\"axisType\":\"key\",\"name\":\"xAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"aggregator\",\"minAxisCount\":1,\"name\":\"yAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"group\",\"name\":\"category\"}],\"step\":[{\"dimension\":\"multiple\",\"axisType\":\"key\",\"name\":\"xAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"aggregator\",\"minAxisCount\":1,\"name\":\"yAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"group\",\"name\":\"category\"}],\"no-group\":[{\"dimension\":\"single\",\"axisType\":\"unique\",\"name\":\"xAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"value\",\"minAxisCount\":1,\"name\":\"yAxis\"}]}",
+                      "parameter": "{\"line\":[{\"valueType\":\"string\",\"defaultValue\":\"round\",\"description\":\"type of bullet\",\"widget\":\"option\",\"optionValues\":[\"round\",\"round-white\",\"none\"],\"name\":\"bulletType\"},{\"valueType\":\"int\",\"defaultValue\":5,\"description\":\"size of bullets\",\"name\":\"bulletSize\"},{\"valueType\":\"int\",\"defaultValue\":50,\"description\":\"bullets will be shown until this count\",\"name\":\"hideBulletsCount\"},{\"valueType\":\"string\",\"defaultValue\":\"none\",\"description\":\"the format of yAxis value\",\"widget\":\"option\",\"optionValues\":[\"none\",\"no-comma\",\"compact-int\",\"binary-size\",\"second\"],\"name\":\"yAxisValueFormat\"},{\"valueType\":\"int\",\"defaultValue\":2,\"description\":\"yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>\",\"name\":\"yAxisValuePrecision\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis value inside of plot\",\"widget\":\"checkbox\",\"name\":\"yAxisValueInside\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"show xAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showXAxisScroll\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showYAxisScroll\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"left margin of chart\",\"name\":\"chartMarginLeft\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"right margin of chart\",\"name\":\"chartMarginRight\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show legend\",\"widget\":\"checkbox\",\"name\":\"showLegend\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of legend (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\\\">doc</a>)\",\"name\":\"legendValueText\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"position of legend\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\",\"left\",\"right\"],\"name\":\"legendPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"xAxis position\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\"],\"name\":\"xAxisPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"left\",\"description\":\"yAxis position\",\"widget\":\"option\",\"optionValues\":[\"left\",\"right\"],\"name\":\"yAxisPosition\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate xAxis labels\",\"name\":\"rotateXAxisLabel\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate yAxis labels\",\"name\":\"rotateYAxisLabel\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of balloon (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\\\">doc</a>)\",\"name\":\"balloonText\"},{\"valueType\":\"string\",\"defaultValue\":\"simple\",\"description\":\"type of balloon\",\"widget\":\"option\",\"optionValues\":[\"simple\",\"color\",\"drop-shaped\"],\"name\":\"balloonType\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"guides of yAxis (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/logarithmic-scale/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"yAxisGuides\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"trend lines (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/trend-lines/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"trendLines\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"main title of chart\",\"name\":\"mainTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"sub title of chart\",\"name\":\"subTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of xAxis\",\"name\":\"xAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of yAxis\",\"name\":\"yAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of xAxis\",\"name\":\"xAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of yAxis\",\"name\":\"yAxisUnit\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use logarithmic scale in yAxis\",\"widget\":\"checkbox\",\"name\":\"logarithmicYAxis\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"invert x and y axes\",\"widget\":\"checkbox\",\"name\":\"inverted\"},{\"valueType\":\"string\",\"defaultValue\":\"line\",\"description\":\"graph type\",\"widget\":\"option\",\"optionValues\":[\"line\",\"smoothedLine\"],\"name\":\"graphType\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"format of date (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\\\">doc</a>) (e.g YYYY-MM-DD)\",\"name\":\"dateFormat\"}],\"dashed\":[{\"valueType\":\"string\",\"defaultValue\":\"none\",\"description\":\"type of bullet\",\"widget\":\"option\",\"optionValues\":[\"none\",\"round\",\"round-white\"],\"name\":\"bulletType\"},{\"valueType\":\"int\",\"defaultValue\":5,\"description\":\"size of bullets\",\"name\":\"bulletSize\"},{\"valueType\":\"int\",\"defaultValue\":50,\"description\":\"bullets will be shown until this count\",\"name\":\"hideBulletsCount\"},{\"valueType\":\"string\",\"defaultValue\":\"none\",\"description\":\"the format of yAxis value\",\"widget\":\"option\",\"optionValues\":[\"none\",\"no-comma\",\"compact-int\",\"binary-size\",\"second\"],\"name\":\"yAxisValueFormat\"},{\"valueType\":\"int\",\"defaultValue\":2,\"description\":\"yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>\",\"name\":\"yAxisValuePrecision\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis value inside of plot\",\"widget\":\"checkbox\",\"name\":\"yAxisValueInside\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"show xAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showXAxisScroll\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showYAxisScroll\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"left margin of chart\",\"name\":\"chartMarginLeft\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"right margin of chart\",\"name\":\"chartMarginRight\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show legend\",\"widget\":\"checkbox\",\"name\":\"showLegend\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of legend (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\\\">doc</a>)\",\"name\":\"legendValueText\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"position of legend\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\",\"left\",\"right\"],\"name\":\"legendPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"xAxis position\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\"],\"name\":\"xAxisPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"left\",\"description\":\"yAxis position\",\"widget\":\"option\",\"optionValues\":[\"left\",\"right\"],\"name\":\"yAxisPosition\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate xAxis labels\",\"name\":\"rotateXAxisLabel\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate yAxis labels\",\"name\":\"rotateYAxisLabel\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of balloon (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\\\">doc</a>)\",\"name\":\"balloonText\"},{\"valueType\":\"string\",\"defaultValue\":\"simple\",\"description\":\"type of balloon\",\"widget\":\"option\",\"optionValues\":[\"simple\",\"color\",\"drop-shaped\"],\"name\":\"balloonType\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"guides of yAxis (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/logarithmic-scale/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"yAxisGuides\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"trend lines (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/trend-lines/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"trendLines\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"main title of chart\",\"name\":\"mainTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"sub title of chart\",\"name\":\"subTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of xAxis\",\"name\":\"xAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of yAxis\",\"name\":\"yAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of xAxis\",\"name\":\"xAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of yAxis\",\"name\":\"yAxisUnit\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use logarithmic scale in yAxis\",\"widget\":\"checkbox\",\"name\":\"logarithmicYAxis\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"invert x and y axes\",\"widget\":\"checkbox\",\"name\":\"inverted\"},{\"valueType\":\"string\",\"defaultValue\":\"line\",\"description\":\"graph type\",\"widget\":\"option\",\"optionValues\":[\"smoothedLine\",\"line\"],\"name\":\"graphType\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"format of date (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\\\">doc</a>) (e.g YYYY-MM-DD)\",\"name\":\"dateFormat\"},{\"valueType\":\"int\",\"defaultValue\":5,\"description\":\"the length of dash\",\"name\":\"dashLength\"}],\"step\":[{\"valueType\":\"int\",\"defaultValue\":5,\"description\":\"size of bullets\",\"name\":\"bulletSize\"},{\"valueType\":\"int\",\"defaultValue\":50,\"description\":\"bullets will be shown until this count\",\"name\":\"hideBulletsCount\"},{\"valueType\":\"string\",\"defaultValue\":\"none\",\"description\":\"the format of yAxis value\",\"widget\":\"option\",\"optionValues\":[\"none\",\"no-comma\",\"compact-int\",\"binary-size\",\"second\"],\"name\":\"yAxisValueFormat\"},{\"valueType\":\"int\",\"defaultValue\":2,\"description\":\"yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>\",\"name\":\"yAxisValuePrecision\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis value inside of plot\",\"widget\":\"checkbox\",\"name\":\"yAxisValueInside\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"show xAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showXAxisScroll\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showYAxisScroll\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"left margin of chart\",\"name\":\"chartMarginLeft\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"right margin of chart\",\"name\":\"chartMarginRight\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show legend\",\"widget\":\"checkbox\",\"name\":\"showLegend\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of legend (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\\\">doc</a>)\",\"name\":\"legendValueText\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"position of legend\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\",\"left\",\"right\"],\"name\":\"legendPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"xAxis position\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\"],\"name\":\"xAxisPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"left\",\"description\":\"yAxis position\",\"widget\":\"option\",\"optionValues\":[\"left\",\"right\"],\"name\":\"yAxisPosition\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate xAxis labels\",\"name\":\"rotateXAxisLabel\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate yAxis labels\",\"name\":\"rotateYAxisLabel\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of balloon (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\\\">doc</a>)\",\"name\":\"balloonText\"},{\"valueType\":\"string\",\"defaultValue\":\"simple\",\"description\":\"type of balloon\",\"widget\":\"option\",\"optionValues\":[\"simple\",\"color\",\"drop-shaped\"],\"name\":\"balloonType\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"guides of yAxis (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/logarithmic-scale/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"yAxisGuides\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"trend lines (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/trend-lines/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"trendLines\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"main title of chart\",\"name\":\"mainTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"sub title of chart\",\"name\":\"subTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of xAxis\",\"name\":\"xAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of yAxis\",\"name\":\"yAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of xAxis\",\"name\":\"xAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of yAxis\",\"name\":\"yAxisUnit\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use logarithmic scale in yAxis\",\"widget\":\"checkbox\",\"name\":\"logarithmicYAxis\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"invert x and y axes\",\"widget\":\"checkbox\",\"name\":\"inverted\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"format of date (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\\\">doc</a>) (e.g YYYY-MM-DD)\",\"name\":\"dateFormat\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"the length of dash\",\"name\":\"dashLength\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"no risers in step line\",\"widget\":\"checkbox\",\"name\":\"noStepRisers\"}],\"no-group\":[{\"valueType\":\"string\",\"defaultValue\":\"round\",\"description\":\"type of bullet\",\"widget\":\"option\",\"optionValues\":[\"round\",\"round-white\",\"none\"],\"name\":\"bulletType\"},{\"valueType\":\"int\",\"defaultValue\":5,\"description\":\"size of bullets\",\"name\":\"bulletSize\"},{\"valueType\":\"int\",\"defaultValue\":50,\"description\":\"bullets will be shown until this count\",\"name\":\"hideBulletsCount\"},{\"valueType\":\"string\",\"defaultValue\":\"none\",\"description\":\"the format of yAxis value\",\"widget\":\"option\",\"optionValues\":[\"none\",\"no-comma\",\"compact-int\",\"binary-size\",\"second\"],\"name\":\"yAxisValueFormat\"},{\"valueType\":\"int\",\"defaultValue\":2,\"description\":\"yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>\",\"name\":\"yAxisValuePrecision\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis value inside of plot\",\"widget\":\"checkbox\",\"name\":\"yAxisValueInside\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"show xAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showXAxisScroll\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show yAxis scroll\",\"widget\":\"checkbox\",\"name\":\"showYAxisScroll\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"left margin of chart\",\"name\":\"chartMarginLeft\"},{\"valueType\":\"int\",\"defaultValue\":15,\"description\":\"right margin of chart\",\"name\":\"chartMarginRight\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show legend\",\"widget\":\"checkbox\",\"name\":\"showLegend\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of legend (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\\\">doc</a>)\",\"name\":\"legendValueText\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"position of legend\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\",\"left\",\"right\"],\"name\":\"legendPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"xAxis position\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\"],\"name\":\"xAxisPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"left\",\"description\":\"yAxis position\",\"widget\":\"option\",\"optionValues\":[\"left\",\"right\"],\"name\":\"yAxisPosition\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate xAxis labels\",\"name\":\"rotateXAxisLabel\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate yAxis labels\",\"name\":\"rotateYAxisLabel\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of balloon (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\\\">doc</a>)\",\"name\":\"balloonText\"},{\"valueType\":\"string\",\"defaultValue\":\"simple\",\"description\":\"type of balloon\",\"widget\":\"option\",\"optionValues\":[\"simple\",\"color\",\"drop-shaped\"],\"name\":\"balloonType\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"guides of yAxis (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/logarithmic-scale/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"yAxisGuides\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"trend lines (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\\\">doc</a>) (<a href=\\\"https://www.amcharts.com/demos/trend-lines/\\\">example</a>)\",\"widget\":\"textarea\",\"name\":\"trendLines\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"main title of chart\",\"name\":\"mainTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"sub title of chart\",\"name\":\"subTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of xAxis\",\"name\":\"xAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of yAxis\",\"name\":\"yAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of xAxis\",\"name\":\"xAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of yAxis\",\"name\":\"yAxisUnit\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use logarithmic scale in yAxis\",\"widget\":\"checkbox\",\"name\":\"logarithmicYAxis\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"invert x and y axes\",\"widget\":\"checkbox\",\"name\":\"inverted\"},{\"valueType\":\"string\",\"defaultValue\":\"line\",\"description\":\"graph type\",\"widget\":\"option\",\"optionValues\":[\"line\",\"smoothedLine\"],\"name\":\"graphType\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"format of date (<a href=\\\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\\\">doc</a>) (e.g YYYY-MM-DD)\",\"name\":\"dateFormat\"}]}"
+                    }
+                  },
+                  "chart": {
+                    "current": "line",
+                    "available": [
+                      "line",
+                      "dashed",
+                      "step",
+                      "no-group"
+                    ]
+                  },
+                  "axis": {
+                    "line": {
+                      "xAxis": [
+                        {
+                          "name": "WeekDayNo",
+                          "index": 0,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "DOW",
+                          "index": 1,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "yAxis": [
+                        {
+                          "name": "AvgTripsNormal",
+                          "index": 2,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "AvgTripsCold",
+                          "index": 3,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "category": []
+                    },
+                    "dashed": {
+                      "xAxis": [
+                        {
+                          "name": "WeekDayNo",
+                          "index": 0,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "DOW",
+                          "index": 1,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "yAxis": [
+                        {
+                          "name": "AvgTripsNormal",
+                          "index": 2,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "AvgTripsCold",
+                          "index": 3,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "category": []
+                    },
+                    "step": {
+                      "xAxis": [
+                        {
+                          "name": "WeekDayNo",
+                          "index": 0,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "DOW",
+                          "index": 1,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "yAxis": [
+                        {
+                          "name": "AvgTripsNormal",
+                          "index": 2,
+                          "aggr": "sum"
+                        },
+                        {
+                          "name": "AvgTripsCold",
+                          "index": 3,
+                          "aggr": "sum"
+                        }
+                      ],
+                      "category": []
+                    },
+                    "no-group": {
+                      "yAxis": []
+                    }
+                  },
+                  "sharedAxis": {
+                    "xAxis": [
+                      {
+                        "name": "WeekDayNo",
+                        "index": 0,
+                        "aggr": "sum"
+                      },
+                      {
+                        "name": "DOW",
+                        "index": 1,
+                        "aggr": "sum"
+                      }
+                    ],
+                    "yAxis": [
+                      {
+                        "name": "AvgTripsNormal",
+                        "index": 2,
+                        "aggr": "sum"
+                      },
+                      {
+                        "name": "AvgTripsCold",
+                        "index": 3,
+                        "aggr": "sum"
+                      }
+                    ],
+                    "category": []
+                  },
+                  "axisSpecs": {
+                    "line": [
+                      {
+                        "dimension": "multiple",
+                        "axisType": "key",
+                        "name": "xAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "aggregator",
+                        "minAxisCount": 1,
+                        "name": "yAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "group",
+                        "name": "category"
+                      }
+                    ],
+                    "dashed": [
+                      {
+                        "dimension": "multiple",
+                        "axisType": "key",
+                        "name": "xAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "aggregator",
+                        "minAxisCount": 1,
+                        "name": "yAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "group",
+                        "name": "category"
+                      }
+                    ],
+                    "step": [
+                      {
+                        "dimension": "multiple",
+                        "axisType": "key",
+                        "name": "xAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "aggregator",
+                        "minAxisCount": 1,
+                        "name": "yAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "group",
+                        "name": "category"
+                      }
+                    ],
+                    "no-group": [
+                      {
+                        "dimension": "single",
+                        "axisType": "unique",
+                        "name": "xAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "value",
+                        "minAxisCount": 1,
+                        "name": "yAxis"
+                      }
+                    ]
+                  },
+                  "parameter": {
+                    "line": {
+                      "bulletType": "round",
+                      "bulletSize": 5,
+                      "hideBulletsCount": 50,
+                      "yAxisValueFormat": "none",
+                      "yAxisValuePrecision": 2,
+                      "yAxisValueInside": true,
+                      "showXAxisScroll": false,
+                      "showYAxisScroll": true,
+                      "chartMarginLeft": "25",
+                      "chartMarginRight": 15,
+                      "showLegend": true,
+                      "legendValueText": "",
+                      "legendPosition": "bottom",
+                      "xAxisPosition": "bottom",
+                      "yAxisPosition": "left",
+                      "rotateXAxisLabel": 0,
+                      "rotateYAxisLabel": 0,
+                      "balloonText": "",
+                      "balloonType": "simple",
+                      "yAxisGuides": "",
+                      "trendLines": "",
+                      "mainTitle": "",
+                      "subTitle": "",
+                      "xAxisName": "Week Day",
+                      "yAxisName": "Number of Trips",
+                      "xAxisUnit": "",
+                      "yAxisUnit": "",
+                      "logarithmicYAxis": false,
+                      "inverted": false,
+                      "graphType": "line",
+                      "dateFormat": ""
+                    },
+                    "dashed": {
+                      "bulletType": "none",
+                      "bulletSize": 5,
+                      "hideBulletsCount": 50,
+                      "yAxisValueFormat": "none",
+                      "yAxisValuePrecision": 2,
+                      "yAxisValueInside": true,
+                      "showXAxisScroll": false,
+                      "showYAxisScroll": true,
+                      "chartMarginLeft": 15,
+                      "chartMarginRight": 15,
+                      "showLegend": true,
+                      "legendValueText": "",
+                      "legendPosition": "bottom",
+                      "xAxisPosition": "bottom",
+                      "yAxisPosition": "left",
+                      "rotateXAxisLabel": 0,
+                      "rotateYAxisLabel": 0,
+                      "balloonText": "",
+                      "balloonType": "simple",
+                      "yAxisGuides": "",
+                      "trendLines": "",
+                      "mainTitle": "",
+                      "subTitle": "",
+                      "xAxisName": "",
+                      "yAxisName": "",
+                      "xAxisUnit": "",
+                      "yAxisUnit": "",
+                      "logarithmicYAxis": false,
+                      "inverted": false,
+                      "graphType": "line",
+                      "dateFormat": "",
+                      "dashLength": 5
+                    },
+                    "step": {
+                      "bulletSize": 5,
+                      "hideBulletsCount": 50,
+                      "yAxisValueFormat": "none",
+                      "yAxisValuePrecision": 2,
+                      "yAxisValueInside": true,
+                      "showXAxisScroll": false,
+                      "showYAxisScroll": true,
+                      "chartMarginLeft": 15,
+                      "chartMarginRight": 15,
+                      "showLegend": true,
+                      "legendValueText": "",
+                      "legendPosition": "bottom",
+                      "xAxisPosition": "bottom",
+                      "yAxisPosition": "left",
+                      "rotateXAxisLabel": 0,
+                      "rotateYAxisLabel": 0,
+                      "balloonText": "",
+                      "balloonType": "simple",
+                      "yAxisGuides": "",
+                      "trendLines": "",
+                      "mainTitle": "",
+                      "subTitle": "",
+                      "xAxisName": "",
+                      "yAxisName": "",
+                      "xAxisUnit": "",
+                      "yAxisUnit": "",
+                      "logarithmicYAxis": false,
+                      "inverted": false,
+                      "dateFormat": "",
+                      "dashLength": 0,
+                      "noStepRisers": false
+                    },
+                    "no-group": {
+                      "bulletType": "round",
+                      "bulletSize": 5,
+                      "hideBulletsCount": 50,
+                      "yAxisValueFormat": "none",
+                      "yAxisValuePrecision": 2,
+                      "yAxisValueInside": true,
+                      "showXAxisScroll": false,
+                      "showYAxisScroll": true,
+                      "chartMarginLeft": 15,
+                      "chartMarginRight": 15,
+                      "showLegend": true,
+                      "legendValueText": "",
+                      "legendPosition": "bottom",
+                      "xAxisPosition": "bottom",
+                      "yAxisPosition": "left",
+                      "rotateXAxisLabel": 0,
+                      "rotateYAxisLabel": 0,
+                      "balloonText": "",
+                      "balloonType": "simple",
+                      "yAxisGuides": "",
+                      "trendLines": "",
+                      "mainTitle": "",
+                      "subTitle": "",
+                      "xAxisName": "",
+                      "yAxisName": "",
+                      "xAxisUnit": "",
+                      "yAxisUnit": "",
+                      "logarithmicYAxis": false,
+                      "inverted": false,
+                      "graphType": "line",
+                      "dateFormat": ""
+                    }
+                  },
+                  "paramSpecs": {
+                    "line": [
+                      {
+                        "valueType": "string",
+                        "defaultValue": "round",
+                        "description": "type of bullet",
+                        "widget": "option",
+                        "optionValues": [
+                          "round",
+                          "round-white",
+                          "none"
+                        ],
+                        "name": "bulletType"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 5,
+                        "description": "size of bullets",
+                        "name": "bulletSize"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 50,
+                        "description": "bullets will be shown until this count",
+                        "name": "hideBulletsCount"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "none",
+                        "description": "the format of yAxis value",
+                        "widget": "option",
+                        "optionValues": [
+                          "none",
+                          "no-comma",
+                          "compact-int",
+                          "binary-size",
+                          "second"
+                        ],
+                        "name": "yAxisValueFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 2,
+                        "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                        "name": "yAxisValuePrecision"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis value inside of plot",
+                        "widget": "checkbox",
+                        "name": "yAxisValueInside"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "show xAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showXAxisScroll"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showYAxisScroll"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "left margin of chart",
+                        "name": "chartMarginLeft"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "right margin of chart",
+                        "name": "chartMarginRight"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show legend",
+                        "widget": "checkbox",
+                        "name": "showLegend"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                        "name": "legendValueText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "position of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top",
+                          "left",
+                          "right"
+                        ],
+                        "name": "legendPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "xAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top"
+                        ],
+                        "name": "xAxisPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "left",
+                        "description": "yAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "left",
+                          "right"
+                        ],
+                        "name": "yAxisPosition"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate xAxis labels",
+                        "name": "rotateXAxisLabel"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate yAxis labels",
+                        "name": "rotateYAxisLabel"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                        "name": "balloonText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "simple",
+                        "description": "type of balloon",
+                        "widget": "option",
+                        "optionValues": [
+                          "simple",
+                          "color",
+                          "drop-shaped"
+                        ],
+                        "name": "balloonType"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "yAxisGuides"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "trendLines"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "main title of chart",
+                        "name": "mainTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "sub title of chart",
+                        "name": "subTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of xAxis",
+                        "name": "xAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of yAxis",
+                        "name": "yAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of xAxis",
+                        "name": "xAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of yAxis",
+                        "name": "yAxisUnit"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use logarithmic scale in yAxis",
+                        "widget": "checkbox",
+                        "name": "logarithmicYAxis"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "invert x and y axes",
+                        "widget": "checkbox",
+                        "name": "inverted"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "line",
+                        "description": "graph type",
+                        "widget": "option",
+                        "optionValues": [
+                          "line",
+                          "smoothedLine"
+                        ],
+                        "name": "graphType"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                        "name": "dateFormat"
+                      }
+                    ],
+                    "dashed": [
+                      {
+                        "valueType": "string",
+                        "defaultValue": "none",
+                        "description": "type of bullet",
+                        "widget": "option",
+                        "optionValues": [
+                          "none",
+                          "round",
+                          "round-white"
+                        ],
+                        "name": "bulletType"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 5,
+                        "description": "size of bullets",
+                        "name": "bulletSize"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 50,
+                        "description": "bullets will be shown until this count",
+                        "name": "hideBulletsCount"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "none",
+                        "description": "the format of yAxis value",
+                        "widget": "option",
+                        "optionValues": [
+                          "none",
+                          "no-comma",
+                          "compact-int",
+                          "binary-size",
+                          "second"
+                        ],
+                        "name": "yAxisValueFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 2,
+                        "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                        "name": "yAxisValuePrecision"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis value inside of plot",
+                        "widget": "checkbox",
+                        "name": "yAxisValueInside"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "show xAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showXAxisScroll"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showYAxisScroll"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "left margin of chart",
+                        "name": "chartMarginLeft"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "right margin of chart",
+                        "name": "chartMarginRight"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show legend",
+                        "widget": "checkbox",
+                        "name": "showLegend"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                        "name": "legendValueText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "position of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top",
+                          "left",
+                          "right"
+                        ],
+                        "name": "legendPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "xAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top"
+                        ],
+                        "name": "xAxisPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "left",
+                        "description": "yAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "left",
+                          "right"
+                        ],
+                        "name": "yAxisPosition"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate xAxis labels",
+                        "name": "rotateXAxisLabel"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate yAxis labels",
+                        "name": "rotateYAxisLabel"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                        "name": "balloonText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "simple",
+                        "description": "type of balloon",
+                        "widget": "option",
+                        "optionValues": [
+                          "simple",
+                          "color",
+                          "drop-shaped"
+                        ],
+                        "name": "balloonType"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "yAxisGuides"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "trendLines"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "main title of chart",
+                        "name": "mainTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "sub title of chart",
+                        "name": "subTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of xAxis",
+                        "name": "xAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of yAxis",
+                        "name": "yAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of xAxis",
+                        "name": "xAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of yAxis",
+                        "name": "yAxisUnit"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use logarithmic scale in yAxis",
+                        "widget": "checkbox",
+                        "name": "logarithmicYAxis"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "invert x and y axes",
+                        "widget": "checkbox",
+                        "name": "inverted"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "line",
+                        "description": "graph type",
+                        "widget": "option",
+                        "optionValues": [
+                          "smoothedLine",
+                          "line"
+                        ],
+                        "name": "graphType"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                        "name": "dateFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 5,
+                        "description": "the length of dash",
+                        "name": "dashLength"
+                      }
+                    ],
+                    "step": [
+                      {
+                        "valueType": "int",
+                        "defaultValue": 5,
+                        "description": "size of bullets",
+                        "name": "bulletSize"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 50,
+                        "description": "bullets will be shown until this count",
+                        "name": "hideBulletsCount"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "none",
+                        "description": "the format of yAxis value",
+                        "widget": "option",
+                        "optionValues": [
+                          "none",
+                          "no-comma",
+                          "compact-int",
+                          "binary-size",
+                          "second"
+                        ],
+                        "name": "yAxisValueFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 2,
+                        "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                        "name": "yAxisValuePrecision"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis value inside of plot",
+                        "widget": "checkbox",
+                        "name": "yAxisValueInside"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "show xAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showXAxisScroll"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showYAxisScroll"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "left margin of chart",
+                        "name": "chartMarginLeft"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "right margin of chart",
+                        "name": "chartMarginRight"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show legend",
+                        "widget": "checkbox",
+                        "name": "showLegend"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                        "name": "legendValueText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "position of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top",
+                          "left",
+                          "right"
+                        ],
+                        "name": "legendPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "xAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top"
+                        ],
+                        "name": "xAxisPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "left",
+                        "description": "yAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "left",
+                          "right"
+                        ],
+                        "name": "yAxisPosition"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate xAxis labels",
+                        "name": "rotateXAxisLabel"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate yAxis labels",
+                        "name": "rotateYAxisLabel"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                        "name": "balloonText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "simple",
+                        "description": "type of balloon",
+                        "widget": "option",
+                        "optionValues": [
+                          "simple",
+                          "color",
+                          "drop-shaped"
+                        ],
+                        "name": "balloonType"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "yAxisGuides"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "trendLines"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "main title of chart",
+                        "name": "mainTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "sub title of chart",
+                        "name": "subTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of xAxis",
+                        "name": "xAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of yAxis",
+                        "name": "yAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of xAxis",
+                        "name": "xAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of yAxis",
+                        "name": "yAxisUnit"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use logarithmic scale in yAxis",
+                        "widget": "checkbox",
+                        "name": "logarithmicYAxis"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "invert x and y axes",
+                        "widget": "checkbox",
+                        "name": "inverted"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                        "name": "dateFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "the length of dash",
+                        "name": "dashLength"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "no risers in step line",
+                        "widget": "checkbox",
+                        "name": "noStepRisers"
+                      }
+                    ],
+                    "no-group": [
+                      {
+                        "valueType": "string",
+                        "defaultValue": "round",
+                        "description": "type of bullet",
+                        "widget": "option",
+                        "optionValues": [
+                          "round",
+                          "round-white",
+                          "none"
+                        ],
+                        "name": "bulletType"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 5,
+                        "description": "size of bullets",
+                        "name": "bulletSize"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 50,
+                        "description": "bullets will be shown until this count",
+                        "name": "hideBulletsCount"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "none",
+                        "description": "the format of yAxis value",
+                        "widget": "option",
+                        "optionValues": [
+                          "none",
+                          "no-comma",
+                          "compact-int",
+                          "binary-size",
+                          "second"
+                        ],
+                        "name": "yAxisValueFormat"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 2,
+                        "description": "yAxisValue precision that for <code>compact-int</code>, <code>binary-size</code>, <code>second</code>",
+                        "name": "yAxisValuePrecision"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis value inside of plot",
+                        "widget": "checkbox",
+                        "name": "yAxisValueInside"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "show xAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showXAxisScroll"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show yAxis scroll",
+                        "widget": "checkbox",
+                        "name": "showYAxisScroll"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "left margin of chart",
+                        "name": "chartMarginLeft"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 15,
+                        "description": "right margin of chart",
+                        "name": "chartMarginRight"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show legend",
+                        "widget": "checkbox",
+                        "name": "showLegend"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of legend (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#legendValueText\">doc</a>)",
+                        "name": "legendValueText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "position of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top",
+                          "left",
+                          "right"
+                        ],
+                        "name": "legendPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "xAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top"
+                        ],
+                        "name": "xAxisPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "left",
+                        "description": "yAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "left",
+                          "right"
+                        ],
+                        "name": "yAxisPosition"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate xAxis labels",
+                        "name": "rotateXAxisLabel"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate yAxis labels",
+                        "name": "rotateYAxisLabel"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of balloon (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#balloonText\">doc</a>)",
+                        "name": "balloonText"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "simple",
+                        "description": "type of balloon",
+                        "widget": "option",
+                        "optionValues": [
+                          "simple",
+                          "color",
+                          "drop-shaped"
+                        ],
+                        "name": "balloonType"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "guides of yAxis (<a href=\"https://docs.amcharts.com/3/javascriptcharts/ValueAxis#guides\">doc</a>) (<a href=\"https://www.amcharts.com/demos/logarithmic-scale/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "yAxisGuides"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "trend lines (<a href=\"https://docs.amcharts.com/3/javascriptcharts/TrendLine\">doc</a>) (<a href=\"https://www.amcharts.com/demos/trend-lines/\">example</a>)",
+                        "widget": "textarea",
+                        "name": "trendLines"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "main title of chart",
+                        "name": "mainTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "sub title of chart",
+                        "name": "subTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of xAxis",
+                        "name": "xAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of yAxis",
+                        "name": "yAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of xAxis",
+                        "name": "xAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of yAxis",
+                        "name": "yAxisUnit"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use logarithmic scale in yAxis",
+                        "widget": "checkbox",
+                        "name": "logarithmicYAxis"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "invert x and y axes",
+                        "widget": "checkbox",
+                        "name": "inverted"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "line",
+                        "description": "graph type",
+                        "widget": "option",
+                        "optionValues": [
+                          "line",
+                          "smoothedLine"
+                        ],
+                        "name": "graphType"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "format of date (<a href=\"https://docs.amcharts.com/3/javascriptcharts/AmGraph#dateFormat\">doc</a>) (e.g YYYY-MM-DD)",
+                        "name": "dateFormat"
+                      }
+                    ]
+                  }
+                },
+                "ultimate-heatmap-chart": {
+                  "chartChanged": true,
+                  "parameterChanged": false,
+                  "panel": {
+                    "columnPanelOpened": true,
+                    "parameterPanelOpened": false
+                  },
+                  "spec": {
+                    "charts": {
+                      "heatmap": {
+                        "transform": {
+                          "method": "array:2-key"
+                        },
+                        "sharedAxis": false,
+                        "axis": {
+                          "xAxis": {
+                            "dimension": "multiple",
+                            "axisType": "key",
+                            "minAxisCount": 1,
+                            "description": "categorical",
+                            "name": "xAxis"
+                          },
+                          "yAxis": {
+                            "dimension": "multiple",
+                            "axisType": "key",
+                            "minAxisCount": 1,
+                            "description": "categorical",
+                            "name": "yAxis"
+                          },
+                          "zAxis": {
+                            "dimension": "single",
+                            "axisType": "aggregator",
+                            "minAxisCount": 1,
+                            "description": "numeric",
+                            "name": "zAxis"
+                          }
+                        },
+                        "parameter": {
+                          "plotBorderWidth": {
+                            "valueType": "int",
+                            "defaultValue": 1,
+                            "description": "border width of plot",
+                            "name": "plotBorderWidth"
+                          },
+                          "seriesBorderWidth": {
+                            "valueType": "int",
+                            "defaultValue": 1,
+                            "description": "border width of series",
+                            "name": "seriesBorderWidth"
+                          },
+                          "yAxisGridLineWidth": {
+                            "valueType": "int",
+                            "defaultValue": 1,
+                            "description": "width of yAxis grid line",
+                            "name": "yAxisGridLineWidth"
+                          },
+                          "colorAxisStops": {
+                            "valueType": "JSON",
+                            "defaultValue": "",
+                            "description": "colorAxis.stops",
+                            "widget": "textarea",
+                            "name": "colorAxisStops"
+                          },
+                          "useColorAxisMax": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use colorAxis.max",
+                            "widget": "checkbox",
+                            "name": "useColorAxisMax"
+                          },
+                          "colorAxisMaxValue": {
+                            "valueType": "int",
+                            "defaultValue": 1,
+                            "description": "colorAxis.max",
+                            "name": "colorAxisMaxValue"
+                          },
+                          "useColorAxisMin": {
+                            "valueType": "boolean",
+                            "defaultValue": false,
+                            "description": "use colorAxis.min",
+                            "widget": "checkbox",
+                            "name": "useColorAxisMin"
+                          },
+                          "colorAxisMinValue": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "colorAxis.min",
+                            "name": "colorAxisMinValue"
+                          },
+                          "colorAxisMaxColor": {
+                            "valueType": "string",
+                            "defaultValue": "#7cb5ec",
+                            "description": "max color of color axis",
+                            "name": "colorAxisMaxColor"
+                          },
+                          "colorAxisMinColor": {
+                            "valueType": "string",
+                            "defaultValue": "#FFFFFF",
+                            "description": "min color of color axis",
+                            "name": "colorAxisMinColor"
+                          },
+                          "seriesBorderColor": {
+                            "valueType": "string",
+                            "defaultValue": "rgb(124, 181, 236)",
+                            "description": "border color of series",
+                            "name": "seriesBorderColor"
+                          },
+                          "floatingLegend": {
+                            "valueType": "string",
+                            "defaultValue": "default",
+                            "description": "floating legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "default",
+                              "top-right",
+                              "top-left"
+                            ],
+                            "name": "floatingLegend"
+                          },
+                          "rotateXAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": -45,
+                            "description": "rotate xAxis labels",
+                            "name": "rotateXAxisLabel"
+                          },
+                          "rotateYAxisLabel": {
+                            "valueType": "int",
+                            "defaultValue": 0,
+                            "description": "rotate yAxis labels",
+                            "name": "rotateYAxisLabel"
+                          },
+                          "tooltipPrecision": {
+                            "valueType": "string",
+                            "defaultValue": ".1f",
+                            "description": "precision of tooltip format without <code>:</code> (<a href=\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\">doc</a>)",
+                            "name": "tooltipPrecision"
+                          },
+                          "legendLabelFormat": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "text format of legend (<a href=\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\">doc</a>)",
+                            "name": "legendLabelFormat"
+                          },
+                          "xAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "xAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top"
+                            ],
+                            "name": "xAxisPosition"
+                          },
+                          "yAxisPosition": {
+                            "valueType": "string",
+                            "defaultValue": "left",
+                            "description": "yAxis position",
+                            "widget": "option",
+                            "optionValues": [
+                              "left",
+                              "right"
+                            ],
+                            "name": "yAxisPosition"
+                          },
+                          "showDataLabel": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show data label",
+                            "widget": "checkbox",
+                            "name": "showDataLabel"
+                          },
+                          "showLegend": {
+                            "valueType": "boolean",
+                            "defaultValue": true,
+                            "description": "show legend",
+                            "widget": "checkbox",
+                            "name": "showLegend"
+                          },
+                          "legendPosition": {
+                            "valueType": "string",
+                            "defaultValue": "bottom",
+                            "description": "position of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "bottom",
+                              "top",
+                              "left",
+                              "right"
+                            ],
+                            "name": "legendPosition"
+                          },
+                          "legendLayout": {
+                            "valueType": "string",
+                            "defaultValue": "horizontal",
+                            "description": "layout of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "vertical",
+                              "horizontal"
+                            ],
+                            "name": "legendLayout"
+                          },
+                          "legendAlign": {
+                            "valueType": "string",
+                            "defaultValue": "center",
+                            "description": "layout of legend",
+                            "widget": "option",
+                            "optionValues": [
+                              "center",
+                              "right",
+                              "left"
+                            ],
+                            "name": "legendAlign"
+                          },
+                          "subTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "sub title of chart",
+                            "name": "subTitle"
+                          },
+                          "mainTitle": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "main title of chart",
+                            "name": "mainTitle"
+                          },
+                          "xAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of xAxis",
+                            "name": "xAxisUnit"
+                          },
+                          "yAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of yAxis",
+                            "name": "yAxisUnit"
+                          },
+                          "zAxisUnit": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "unit of zAxis",
+                            "name": "zAxisUnit"
+                          },
+                          "xAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of xAxis",
+                            "name": "xAxisName"
+                          },
+                          "yAxisName": {
+                            "valueType": "string",
+                            "defaultValue": "",
+                            "description": "name of yAxis",
+                            "name": "yAxisName"
+                          }
+                        }
+                      }
+                    },
+                    "initialized": false,
+                    "version": {
+                      "axis": "{\"heatmap\":[{\"dimension\":\"multiple\",\"axisType\":\"key\",\"minAxisCount\":1,\"description\":\"categorical\",\"name\":\"xAxis\"},{\"dimension\":\"multiple\",\"axisType\":\"key\",\"minAxisCount\":1,\"description\":\"categorical\",\"name\":\"yAxis\"},{\"dimension\":\"single\",\"axisType\":\"aggregator\",\"minAxisCount\":1,\"description\":\"numeric\",\"name\":\"zAxis\"}]}",
+                      "parameter": "{\"heatmap\":[{\"valueType\":\"int\",\"defaultValue\":1,\"description\":\"border width of plot\",\"name\":\"plotBorderWidth\"},{\"valueType\":\"int\",\"defaultValue\":1,\"description\":\"border width of series\",\"name\":\"seriesBorderWidth\"},{\"valueType\":\"int\",\"defaultValue\":1,\"description\":\"width of yAxis grid line\",\"name\":\"yAxisGridLineWidth\"},{\"valueType\":\"JSON\",\"defaultValue\":\"\",\"description\":\"colorAxis.stops\",\"widget\":\"textarea\",\"name\":\"colorAxisStops\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use colorAxis.max\",\"widget\":\"checkbox\",\"name\":\"useColorAxisMax\"},{\"valueType\":\"int\",\"defaultValue\":1,\"description\":\"colorAxis.max\",\"name\":\"colorAxisMaxValue\"},{\"valueType\":\"boolean\",\"defaultValue\":false,\"description\":\"use colorAxis.min\",\"widget\":\"checkbox\",\"name\":\"useColorAxisMin\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"colorAxis.min\",\"name\":\"colorAxisMinValue\"},{\"valueType\":\"string\",\"defaultValue\":\"#7cb5ec\",\"description\":\"max color of color axis\",\"name\":\"colorAxisMaxColor\"},{\"valueType\":\"string\",\"defaultValue\":\"#FFFFFF\",\"description\":\"min color of color axis\",\"name\":\"colorAxisMinColor\"},{\"valueType\":\"string\",\"defaultValue\":\"rgb(124, 181, 236)\",\"description\":\"border color of series\",\"name\":\"seriesBorderColor\"},{\"valueType\":\"string\",\"defaultValue\":\"default\",\"description\":\"floating legend\",\"widget\":\"option\",\"optionValues\":[\"default\",\"top-right\",\"top-left\"],\"name\":\"floatingLegend\"},{\"valueType\":\"int\",\"defaultValue\":-45,\"description\":\"rotate xAxis labels\",\"name\":\"rotateXAxisLabel\"},{\"valueType\":\"int\",\"defaultValue\":0,\"description\":\"rotate yAxis labels\",\"name\":\"rotateYAxisLabel\"},{\"valueType\":\"string\",\"defaultValue\":\".1f\",\"description\":\"precision of tooltip format without <code>:</code> (<a href=\\\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\\\">doc</a>)\",\"name\":\"tooltipPrecision\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"text format of legend (<a href=\\\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\\\">doc</a>)\",\"name\":\"legendLabelFormat\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"xAxis position\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\"],\"name\":\"xAxisPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"left\",\"description\":\"yAxis position\",\"widget\":\"option\",\"optionValues\":[\"left\",\"right\"],\"name\":\"yAxisPosition\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show data label\",\"widget\":\"checkbox\",\"name\":\"showDataLabel\"},{\"valueType\":\"boolean\",\"defaultValue\":true,\"description\":\"show legend\",\"widget\":\"checkbox\",\"name\":\"showLegend\"},{\"valueType\":\"string\",\"defaultValue\":\"bottom\",\"description\":\"position of legend\",\"widget\":\"option\",\"optionValues\":[\"bottom\",\"top\",\"left\",\"right\"],\"name\":\"legendPosition\"},{\"valueType\":\"string\",\"defaultValue\":\"horizontal\",\"description\":\"layout of legend\",\"widget\":\"option\",\"optionValues\":[\"vertical\",\"horizontal\"],\"name\":\"legendLayout\"},{\"valueType\":\"string\",\"defaultValue\":\"center\",\"description\":\"layout of legend\",\"widget\":\"option\",\"optionValues\":[\"center\",\"right\",\"left\"],\"name\":\"legendAlign\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"sub title of chart\",\"name\":\"subTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"main title of chart\",\"name\":\"mainTitle\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of xAxis\",\"name\":\"xAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of yAxis\",\"name\":\"yAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"unit of zAxis\",\"name\":\"zAxisUnit\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of xAxis\",\"name\":\"xAxisName\"},{\"valueType\":\"string\",\"defaultValue\":\"\",\"description\":\"name of yAxis\",\"name\":\"yAxisName\"}]}"
+                    }
+                  },
+                  "chart": {
+                    "current": "heatmap",
+                    "available": [
+                      "heatmap"
+                    ]
+                  },
+                  "axis": {
+                    "heatmap": {
+                      "xAxis": [],
+                      "yAxis": []
+                    }
+                  },
+                  "sharedAxis": {},
+                  "axisSpecs": {
+                    "heatmap": [
+                      {
+                        "dimension": "multiple",
+                        "axisType": "key",
+                        "minAxisCount": 1,
+                        "description": "categorical",
+                        "name": "xAxis"
+                      },
+                      {
+                        "dimension": "multiple",
+                        "axisType": "key",
+                        "minAxisCount": 1,
+                        "description": "categorical",
+                        "name": "yAxis"
+                      },
+                      {
+                        "dimension": "single",
+                        "axisType": "aggregator",
+                        "minAxisCount": 1,
+                        "description": "numeric",
+                        "name": "zAxis"
+                      }
+                    ]
+                  },
+                  "parameter": {
+                    "heatmap": {
+                      "plotBorderWidth": 1,
+                      "seriesBorderWidth": 1,
+                      "yAxisGridLineWidth": 1,
+                      "colorAxisStops": "",
+                      "useColorAxisMax": false,
+                      "colorAxisMaxValue": 1,
+                      "useColorAxisMin": false,
+                      "colorAxisMinValue": 0,
+                      "colorAxisMaxColor": "#7cb5ec",
+                      "colorAxisMinColor": "#FFFFFF",
+                      "seriesBorderColor": "rgb(124, 181, 236)",
+                      "floatingLegend": "default",
+                      "rotateXAxisLabel": -45,
+                      "rotateYAxisLabel": 0,
+                      "tooltipPrecision": ".1f",
+                      "legendLabelFormat": "",
+                      "xAxisPosition": "bottom",
+                      "yAxisPosition": "left",
+                      "showDataLabel": true,
+                      "showLegend": true,
+                      "legendPosition": "bottom",
+                      "legendLayout": "horizontal",
+                      "legendAlign": "center",
+                      "subTitle": "",
+                      "mainTitle": "",
+                      "xAxisUnit": "",
+                      "yAxisUnit": "",
+                      "zAxisUnit": "",
+                      "xAxisName": "",
+                      "yAxisName": ""
+                    }
+                  },
+                  "paramSpecs": {
+                    "heatmap": [
+                      {
+                        "valueType": "int",
+                        "defaultValue": 1,
+                        "description": "border width of plot",
+                        "name": "plotBorderWidth"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 1,
+                        "description": "border width of series",
+                        "name": "seriesBorderWidth"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 1,
+                        "description": "width of yAxis grid line",
+                        "name": "yAxisGridLineWidth"
+                      },
+                      {
+                        "valueType": "JSON",
+                        "defaultValue": "",
+                        "description": "colorAxis.stops",
+                        "widget": "textarea",
+                        "name": "colorAxisStops"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use colorAxis.max",
+                        "widget": "checkbox",
+                        "name": "useColorAxisMax"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 1,
+                        "description": "colorAxis.max",
+                        "name": "colorAxisMaxValue"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": false,
+                        "description": "use colorAxis.min",
+                        "widget": "checkbox",
+                        "name": "useColorAxisMin"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "colorAxis.min",
+                        "name": "colorAxisMinValue"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "#7cb5ec",
+                        "description": "max color of color axis",
+                        "name": "colorAxisMaxColor"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "#FFFFFF",
+                        "description": "min color of color axis",
+                        "name": "colorAxisMinColor"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "rgb(124, 181, 236)",
+                        "description": "border color of series",
+                        "name": "seriesBorderColor"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "default",
+                        "description": "floating legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "default",
+                          "top-right",
+                          "top-left"
+                        ],
+                        "name": "floatingLegend"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": -45,
+                        "description": "rotate xAxis labels",
+                        "name": "rotateXAxisLabel"
+                      },
+                      {
+                        "valueType": "int",
+                        "defaultValue": 0,
+                        "description": "rotate yAxis labels",
+                        "name": "rotateYAxisLabel"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": ".1f",
+                        "description": "precision of tooltip format without <code>:</code> (<a href=\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\">doc</a>)",
+                        "name": "tooltipPrecision"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "text format of legend (<a href=\"http://www.highcharts.com/docs/chart-concepts/labels-and-string-formatting\">doc</a>)",
+                        "name": "legendLabelFormat"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "xAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top"
+                        ],
+                        "name": "xAxisPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "left",
+                        "description": "yAxis position",
+                        "widget": "option",
+                        "optionValues": [
+                          "left",
+                          "right"
+                        ],
+                        "name": "yAxisPosition"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show data label",
+                        "widget": "checkbox",
+                        "name": "showDataLabel"
+                      },
+                      {
+                        "valueType": "boolean",
+                        "defaultValue": true,
+                        "description": "show legend",
+                        "widget": "checkbox",
+                        "name": "showLegend"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "bottom",
+                        "description": "position of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "bottom",
+                          "top",
+                          "left",
+                          "right"
+                        ],
+                        "name": "legendPosition"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "horizontal",
+                        "description": "layout of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "vertical",
+                          "horizontal"
+                        ],
+                        "name": "legendLayout"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "center",
+                        "description": "layout of legend",
+                        "widget": "option",
+                        "optionValues": [
+                          "center",
+                          "right",
+                          "left"
+                        ],
+                        "name": "legendAlign"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "sub title of chart",
+                        "name": "subTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "main title of chart",
+                        "name": "mainTitle"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of xAxis",
+                        "name": "xAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of yAxis",
+                        "name": "yAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "unit of zAxis",
+                        "name": "zAxisUnit"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of xAxis",
+                        "name": "xAxisName"
+                      },
+                      {
+                        "valueType": "string",
+                        "defaultValue": "",
+                        "description": "name of yAxis",
+                        "name": "yAxisName"
+                      }
+                    ]
+                  }
+                }
+              },
+              "commonSetting": {}
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "WeekDayNo\tDOW\tAvgTripsNormal\tAvgTripsCold\n1\tSun\t462138.13\t482028.5\n2\tMon\t422701.38\t421900.25\n3\tTue\t460196.23\t422577.38\n4\tWed\t482627.13\t509551.8\n5\tThu\t494234.44\t516207.0\n6\tFri\t504705.34\t493985.1\n7\tSat\t503987.14\t553829.57\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=7",
+              "$$hashKey": "object:4787"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=8",
+              "$$hashKey": "object:4788"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=9",
+              "$$hashKey": "object:4789"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=10",
+              "$$hashKey": "object:4790"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=11",
+              "$$hashKey": "object:4791"
+            },
+            {
+              "jobUrl": "http://optiplex:4041/jobs/job?id=12",
+              "$$hashKey": "object:4792"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1693140499444_1479918677",
+      "id": "paragraph_1693140499444_1479918677",
+      "dateCreated": "2023-08-27T14:48:19+0200",
+      "dateStarted": "2023-08-27T15:09:23+0200",
+      "dateFinished": "2023-08-27T15:15:44+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:108"
+    }
+  ],
+  "name": "ny-taxi-weather-influence",
+  "id": "2JA9BKUT8",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.10.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/ny-taxi-weather-influence"
+}

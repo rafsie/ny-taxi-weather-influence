@@ -16,8 +16,8 @@ object NyTaxiWeatherInfluence extends App {
     .option("header", "true")
     .option("mode", "FAILFAST")
     .option("inferSchema", "true")
-//    .load("/home/rs/Desktop/ntfs/nytaxi/part-*.snappy.parquet")
-  .load("/home/rs/Desktop/ntfs/nytaxi/part-r-00000-ec9cbb65-519d-4bdb-a918-72e2364c144c.snappy.parquet")
+    .load("/home/rs/Desktop/ntfs/nytaxi/part-*.snappy.parquet")
+//  .load("/home/rs/Desktop/ntfs/nytaxi/part-r-00000-ec9cbb65-519d-4bdb-a918-72e2364c144c.snappy.parquet")
 
   val nyWeatherDF = spark.read
     .option("header", "true")
@@ -33,7 +33,7 @@ object NyTaxiWeatherInfluence extends App {
     .withColumn("pickup_date", to_date(col("pickup_datetime"), "yyyy-MM-dd"))
     .withColumn("DOW", date_format(col("pickup_date"), "E"))
     .withColumn("WeekDayNo", dayofweek(col("pickup_date")))
-    .join(nyWeatherDF, col("pickup_date") === col("Date").cast("date"))
+    .join(nyWeatherDF, col("pickup_date") <=> col("Date").cast("date"))
     .groupBy($"pickup_date".as("Date"),
       $"WeekDayNo".as("WeekDayNo"),
       $"DOW".as("DOW"),
@@ -41,9 +41,23 @@ object NyTaxiWeatherInfluence extends App {
       milesToKmPerHour($"Wind_avg").as("AvgWindKmh"),
       inchesToMm($"Precipitation").as("PrecipitationMMm2"))
     .agg(count("*").as("TripsNo"))
-    //    .where($"PrecipitationMMm2" > 0.0)
     .orderBy(col("Date").asc_nulls_last)
 
-  weatherDF.show(10)
+  weatherDF.createOrReplaceTempView("weathertbl")
+  weatherDF.show(25)
 
+  spark.sql("CREATE OR REPLACE TEMPORARY VIEW normalweathertbl AS " +
+    "SELECT WeekDayNo, DOW, round(avg(TripsNo), 2) AS AvgTripsNormal FROM weathertbl " +
+    "WHERE AvgTempC BETWEEN 10 AND 25 AND AvgWindKmh < 20 AND PrecipitationMMm2 = 0 " +
+    "GROUP BY DOW, WeekDayNo " +
+    "ORDER BY WeekDayNo ASC")
+
+  val result = spark.sql("SELECT wt.WeekDayNo, wt.DOW, nwt.AvgTripsNormal, round(avg(TripsNo), 2) AS AvgTripsCold FROM weathertbl wt " +
+    "INNER JOIN normalweathertbl nwt " +
+    "ON wt.WeekDayNo = nwt.WeekDayNo " +
+    "WHERE AvgTempC < 10 AND AvgWindKmh > 20 AND PrecipitationMMm2 > 0 " +
+    "GROUP BY wt.DOW, wt.WeekDayNo, nwt.AvgTripsNormal " +
+    "ORDER BY WeekDayNo ASC")
+
+  result.show(25)
 }
