@@ -24,7 +24,7 @@ The _csv_ file containing historical meteorological data used also here was coll
 
 All units for temperature, wind speed and precipitation have been converted on the fly from imperial to metric using simple functions written in Scala.
 
-For the purposes of the chart, a simple assumption was made that the yellow line in the chart (_AvgTripsNormal_) means the number of trips in optimal weather conditions classified as: average temperature (_AvgTempC_) between 10 and 25 Celsius degree, average wind speed (_AvgWindKmh_) below 20 kilometer per hour and precipitation (PrecipitationMMm2) equal to zero.
+For the purposes of the chart, a simple assumption was made that the yellow line in the chart (_AvgTripsNormal_) means the number of trips in optimal weather conditions classified as: average temperature (_AvgTempC_) between 10 and 25 Celsius degree, average wind speed (_AvgWindKmh_) below 20 kilometer per hour and precipitation (_PrecipitationMMm2_) equal to zero.
 
 In turn, the blue line (_AvgTripsCold_) indicates the number of trips with an average temperature below 10 degrees Celsius, wind speed above 20 km/h, and precipitation greater than 0. Modification of these simple criteria is easy thanks to the possibility of creating a new table view and slightly modifying the target SQL query.
 
